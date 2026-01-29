@@ -5,7 +5,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class SchedulerService {
-  constructor(@InjectQueue('SchedulerQueue') private readonly queue: Queue) { }
+  constructor(@InjectQueue('SchedulerQueue') private readonly queue: Queue) {}
 
-  // TODO: closeAuction
+  // TODO: closeAuction, openAuction
 }

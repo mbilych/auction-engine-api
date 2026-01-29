@@ -13,4 +13,4 @@ const services = [];
   providers: [...guards, ...providers, ...services],
   exports: [...modules, ...providers, ...services],
 })
-export class SharedModule { }
+export class SharedModule {}

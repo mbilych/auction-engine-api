@@ -3,7 +3,7 @@ import { SchedulerService } from './scheduler.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configSchema } from './config.schema';
 import { ScheduleModule } from '@nestjs/schedule';
-import { BullModule } from '@nestjs/bull';
+import { BullModule, BullRootModuleOptions } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -16,15 +16,17 @@ import { BullModule } from '@nestjs/bull';
         abortEarly: true,
       },
     }),
+
     ScheduleModule.forRoot(),
+
     BullModule.forRootAsync({
-      useFactory: (config: ConfigService) => ({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService): BullRootModuleOptions => ({
         redis: {
-          host: config.get('REDIS_HOST'),
-          port: config.get('REDIS_PORT'),
+          host: config.get<string>('REDIS_HOST'),
+          port: config.get<number>('REDIS_PORT'),
         },
       }),
-      inject: [ConfigService],
     }),
     BullModule.registerQueue({
       name: 'SchedulerQueue',
@@ -32,4 +34,4 @@ import { BullModule } from '@nestjs/bull';
   ],
   providers: [SchedulerService],
 })
-export class SchedulerModule { }
+export class SchedulerModule {}
