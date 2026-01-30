@@ -1,19 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { Transport } from '@nestjs/microservices';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SchedulerModule } from './scheduler.module';
 
 async function bootstrap() {
-  const configModule = await NestFactory.createApplicationContext(ConfigModule);
-  const configService = configModule.get(ConfigService);
-
-  const app = await NestFactory.createMicroservice(SchedulerModule, {
-    transport: Transport.REDIS,
-    options: {
-      host: configService.get('REDIS_HOST'),
-      port: configService.get('REDIS_PORT'),
-    },
-  });
-  await app.listen();
+  // Since Scheduler only runs @Cron jobs and adds them to Bull,
+  // we don't need a full Microservice or HTTP server.
+  // ApplicationContext is enough to trigger the ScheduleModule and Bull logic.
+  await NestFactory.createApplicationContext(SchedulerModule);
+  console.log('Scheduler is running and monitoring cron jobs...');
 }
 bootstrap();

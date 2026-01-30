@@ -4,6 +4,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configSchema } from './config.schema';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule, BullRootModuleOptions } from '@nestjs/bull';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Auction } from '@app/api/modules/auction/auction.entity';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -16,17 +19,16 @@ import { BullModule, BullRootModuleOptions } from '@nestjs/bull';
         abortEarly: true,
       },
     }),
-
     ScheduleModule.forRoot(),
-
     BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService): BullRootModuleOptions => ({
+      useFactory: (config: ConfigService) => ({
         redis: {
-          host: config.get<string>('REDIS_HOST'),
-          port: config.get<number>('REDIS_PORT'),
+          host: config.get('REDIS_HOST'),
+          port: config.get('REDIS_PORT'),
+          maxRetriesPerRequest: null,
         },
       }),
+      inject: [ConfigService],
     }),
     BullModule.registerQueue({
       name: 'SchedulerQueue',
