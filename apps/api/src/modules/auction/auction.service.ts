@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BasicOrmService } from 'src/shared/services/basic-orm.service';
+import { BasicOrmService } from '../../shared/services/basic-orm.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Auction } from './auction.entity';
