@@ -1,11 +1,16 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany, VersionColumn } from 'typeorm';
 import { BasicEntity } from '../../shared/classes/basic-entity.class';
 import { AuctionStatus } from '../../shared/enums/auction-status.enum';
 import { Bid } from '../bid/bid.entity';
+import { ColumnNumericTransformer } from '../../shared/transformers/numeric.transformer';
 
 @Entity({ name: 'auction' })
 export class Auction extends BasicEntity {
-  @Column({ type: 'enum', enum: AuctionStatus, default: AuctionStatus.Created })
+  @Column({
+    type: 'enum',
+    enum: AuctionStatus,
+    default: AuctionStatus.Created,
+  })
   status: AuctionStatus;
 
   @Column({ type: 'varchar', length: 255 })
@@ -14,11 +19,32 @@ export class Auction extends BasicEntity {
   @Column({ type: 'text', nullable: true })
   thumbnail?: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: new ColumnNumericTransformer(),
+  })
+  initialPrice: number;
+
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: new ColumnNumericTransformer(),
+  })
   currentPrice: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: new ColumnNumericTransformer(),
+  })
   minStep: number;
+
+  @Column({ type: 'timestamp' })
+  startsAt: Date;
 
   @Column({ type: 'timestamp' })
   endsAt: Date;
@@ -26,7 +52,10 @@ export class Auction extends BasicEntity {
   @Column({ type: 'uuid', nullable: true })
   winnerBidId?: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'uuid', nullable: true })
+  winnerUserId?: string;
+
+  @VersionColumn()
   version: number;
 
   @OneToMany(() => Bid, (bid) => bid.auction)
