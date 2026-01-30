@@ -16,6 +16,10 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@app/api/*": ["apps/api/src/*"],
+      "@app/scheduler/*": ["apps/scheduler/src/*"]
+    }
   }
 }
