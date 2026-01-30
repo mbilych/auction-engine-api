@@ -45,9 +45,30 @@ export class BidService extends BasicOrmService<Bid> {
         throw new BadRequestException('Auction is not active');
       }
 
+      if (isNaN(amount) || !isFinite(amount)) {
+        throw new BadRequestException('Invalid bid amount');
+      }
+
       const minBid = Number(auction.currentPrice) + Number(auction.minStep);
       if (amount < minBid) {
-        throw new BadRequestException(`Bid must be at least ${minBid}`);
+        throw new BadRequestException(
+          `Bid amount ${amount} is too low. Minimum required: ${minBid}`,
+        );
+      }
+
+      const increment = amount - Number(auction.currentPrice);
+      const step = Number(auction.minStep);
+      const remainder = increment % step;
+
+      // Use epsilon to avoid floating point issues
+      const isMultipleOfStep =
+        Math.abs(remainder / step) < 0.01 ||
+        Math.abs(1 - remainder / step) < 0.01;
+
+      if (!isMultipleOfStep) {
+        throw new BadRequestException(
+          `Bid increment must be a multiple of ${step}`,
+        );
       }
 
       // Sniping protection: extend by 30 seconds if bid is in last 30 seconds
