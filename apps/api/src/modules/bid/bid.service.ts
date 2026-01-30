@@ -80,10 +80,10 @@ export class BidService extends BasicOrmService<Bid> {
         }),
       );
 
-      this.eventEmitter.emit('bid.placed', { 
-        auctionId, 
+      this.eventEmitter.emit('bid.placed', {
+        auctionId,
         bid: savedBid,
-        auctionEndsAt: auction.endsAt 
+        auctionEndsAt: auction.endsAt,
       });
 
       return savedBid;

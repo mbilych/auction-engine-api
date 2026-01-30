@@ -42,7 +42,9 @@ export class ActionProcessor {
         auction.winnerBidId = winnerBidId;
         auction.winnerUserId = winnerUserId;
         await this.auctionRepository.save(auction);
-        this.logger.log(`Winner for ${auction.id} is user ${winnerUserId} with bid ${winnerBidId}`);
+        this.logger.log(
+          `Winner for ${auction.id} is user ${winnerUserId} with bid ${winnerBidId}`,
+        );
       }
 
       this.eventsGateway.broadcastAuctionStatus(

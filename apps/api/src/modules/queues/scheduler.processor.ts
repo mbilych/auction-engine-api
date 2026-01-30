@@ -33,7 +33,10 @@ export class SchedulerProcessor {
         this.logger.log(`Opening auction ${auction.id}`);
         auction.status = AuctionStatus.Active;
         await this.auctionRepository.save(auction);
-        this.eventsGateway.broadcastAuctionStatus(auction.id, AuctionStatus.Active);
+        this.eventsGateway.broadcastAuctionStatus(
+          auction.id,
+          AuctionStatus.Active,
+        );
         this.eventsGateway.broadcastAuctionListUpdate();
       }
     }
@@ -42,7 +45,7 @@ export class SchedulerProcessor {
   @Process('closeAuction')
   async closeAuction() {
     const now = new Date();
-    
+
     // 1. Find auctions that should be CLOSED
     const auctionsToClose = await this.auctionRepository.find({
       where: {
@@ -54,7 +57,7 @@ export class SchedulerProcessor {
     if (auctionsToClose.length > 0) {
       this.logger.log(`Closing ${auctionsToClose.length} auctions`);
       const auctionIds = auctionsToClose.map((a) => a.id);
-      
+
       for (const auction of auctionsToClose) {
         auction.status = AuctionStatus.Finished;
         await this.auctionRepository.save(auction);
@@ -67,7 +70,7 @@ export class SchedulerProcessor {
 
     // 2. Find auctions that have been 'Finished' for at least 90 seconds and RESET them
     // This is safer than Bull delayed jobs for this specific demo environment
-    const RESET_THRESHOLD_MS = 90 * 1000; 
+    const RESET_THRESHOLD_MS = 90 * 1000;
     const resetTime = new Date(now.getTime() - RESET_THRESHOLD_MS);
 
     const auctionsToReset = await this.auctionRepository.find({
@@ -78,24 +81,34 @@ export class SchedulerProcessor {
     });
 
     if (auctionsToReset.length > 0) {
-      this.logger.log(`Resetting ${auctionsToReset.length} finished auctions to Created state`);
+      this.logger.log(
+        `Resetting ${auctionsToReset.length} finished auctions to Created state`,
+      );
       for (const auction of auctionsToReset) {
         this.logger.log(`Resetting auction slot: ${auction.id}`);
 
         // Cleanup
-        await this.auctionRepository.query('DELETE FROM "bid" WHERE "auctionId" = $1', [auction.id]);
-        await this.auctionRepository.query('DELETE FROM "auction_log" WHERE "auctionId" = $1', [auction.id]);
+        await this.auctionRepository.query(
+          'DELETE FROM "bid" WHERE "auctionId" = $1',
+          [auction.id],
+        );
+        await this.auctionRepository.query(
+          'DELETE FROM "auction_log" WHERE "auctionId" = $1',
+          [auction.id],
+        );
 
         // Prepare next round
         const cooldownSec = 30;
         const durationMin = Math.floor(Math.random() * 3) + 3; // 3-5 mins
-        
+
         auction.status = AuctionStatus.Created;
         auction.currentPrice = auction.initialPrice;
         auction.winnerBidId = null;
         auction.winnerUserId = null;
         auction.startsAt = new Date(now.getTime() + cooldownSec * 1000);
-        auction.endsAt = new Date(auction.startsAt.getTime() + durationMin * 60000);
+        auction.endsAt = new Date(
+          auction.startsAt.getTime() + durationMin * 60000,
+        );
         auction.version = auction.version + 1;
 
         await this.auctionRepository.save(auction);

@@ -3,10 +3,7 @@ import { SchedulerService } from './scheduler.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configSchema } from './config.schema';
 import { ScheduleModule } from '@nestjs/schedule';
-import { BullModule, BullRootModuleOptions } from '@nestjs/bull';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Auction } from '@app/api/modules/auction/auction.entity';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
