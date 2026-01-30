@@ -1,73 +1,106 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Auction Engine API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This project is the core of a real-time auction system, built with **NestJS**. It manages the auction lifecycle, handles bidding, and ensures instantaneous synchronization with clients.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Functional Requirements Implementation
 
-## Description
+### 2.1 Auction (Core Logic)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Implemented as a state-machine managed by background services:
 
-## Installation
+- **States**: The `Auction` entity supports `CREATED`, `ACTIVE`, and `FINISHED` statuses.
+- **Auto-Start/End**: A dedicated **Scheduler Service** (Cron) monitors `startsAt` and `endsAt` timestamps. It automatically transitions auctions to `ACTIVE` when they begin and `FINISHED` when they expire.
+- **Winner Determination**: Upon completion, a **Bull Queue Processor** identifies the highest bid, links it to the auction as the winner, and persists the final winning user.
+- **Audit Log**: Every significant event (bid placement, status change) is recorded in the `AuctionLog` table, capturing payload data and timestamps for full traceability.
 
-```bash
-$ yarn install
+### 2.2 Bidding Logic
+
+Robust bidding handled via `BidService`:
+
+- **Place Bid**: Atomic bid creation within a **Database Transaction** to ensure data consistency.
+- **Validation**:
+  - **Minimum Step**: Rejects bids that are not at least `currentPrice + minStep`.
+  - **Relevance**: Bids are only accepted for auctions in the `ACTIVE` status.
+- **Concurrency Control**: Protected against race conditions using TypeORM transactions and database-level constraints.
+- **Anti-Sniping (Auction Extension)**: If a bid is placed within the last 30 seconds of an auction, the `endsAt` time is automatically extended by 30 seconds.
+
+### 2.3 Real-Time Implementation
+
+Separation of concerns is maintained between business logic and the real-time layer:
+
+- **WebSockets (Socket.io)**: Managed via `EventsGateway`. It is decoupled from services using **NestJS EventEmitter**.
+- **Live Updates**:
+  - Updates for current price and new bids are pushed to specific auction rooms.
+  - State changes (e.g., transition to `FINISHED`) are broadcasted globally.
+- **Timer Sync**: The server sends its current time with every update to ensure frontend countdowns remain synchronized even with network latency.
+
+## Core Features
+
+- 🔄 **Auction Lifecycle**: Automated transitions and demo-mode reset.
+- ⚡ **Real-time Bidding**: Instant broadcasting via WebSockets.
+- 🛡️ **Sniper Protection**: Dynamic end-time extension.
+- 📦 **Queues & Tasks**: Bull (Redis) for background processing.
+- ✅ **Robust Validation**: class-validator and custom service-level checks.
+
+## Tech Stack
+
+- **Framework**: NestJS
+- **Database**: PostgreSQL + TypeORM
+- **Queues**: Redis + Bull
+- **Real-time**: Socket.io
+- **Validation**: class-validator
+
+## Local Setup
+
+### 1. Prerequisites
+
+- **Node.js** (v18+)
+- **Redis** and **PostgreSQL**
+- **Yarn** package manager
+
+### 2. Environment Configuration
+
+Create a `.env` file in the root directory:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_NAME=auction_db
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+PORT=8555
 ```
 
-## Running the app
+### 3. Installation
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+yarn install
 ```
 
-## Test
+### 4. Database Setup
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+# Run migrations (includes demo data)
+yarn db:up
 ```
 
-## Support
+### 5. Running the Apps
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# Start API (Main business logic & WebSockets)
+yarn start:dev
 
-## Stay in touch
+# Start Scheduler (Cron jobs & Queue processing)
+yarn start:scheduler:dev
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Future Enhancements
 
-## License
-
-Nest is [MIT licensed](LICENSE).
+- 🔐 JWT-based Authentication
+- 💳 Payment Gateway Integration
+- 🌓 Dark Mode Support
+- 🌐 Internationalization (i18n)
