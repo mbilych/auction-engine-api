@@ -47,9 +47,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent('bid.placed')
-  onBidPlaced(payload: { auctionId: string; bid: any }) {
+  onBidPlaced(payload: { auctionId: string; bid: any; auctionEndsAt: Date }) {
     this.server.to(`auction_${payload.auctionId}`).emit('bid_placed', {
       ...payload.bid,
+      auctionEndsAt: payload.auctionEndsAt,
       serverTime: new Date(),
     });
   }
