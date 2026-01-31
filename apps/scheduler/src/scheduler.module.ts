@@ -18,13 +18,18 @@ import { BullModule } from '@nestjs/bull';
     }),
     ScheduleModule.forRoot(),
     BullModule.forRootAsync({
-      useFactory: (config: ConfigService) => ({
-        redis: {
-          host: config.get('REDIS_HOST'),
-          port: config.get('REDIS_PORT'),
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.get('REDIS_URL');
+        return {
+          redis: redisUrl
+            ? redisUrl
+            : {
+                host: config.get('REDIS_HOST'),
+                port: config.get('REDIS_PORT'),
+              },
           maxRetriesPerRequest: null,
-        },
-      }),
+        };
+      },
       inject: [ConfigService],
     }),
     BullModule.registerQueue({
