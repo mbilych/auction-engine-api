@@ -13,7 +13,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/apps/api/apps/api/src/main",
+    "start:prod": "node dist/apps/api/main",
     "start:scheduler": "nest start scheduler",
     "start:scheduler:dev": "nest start --watch scheduler",
     "start:scheduler:debug": "nest start --debug --watch scheduler",
@@ -32,7 +32,8 @@
     "db:up": "yarn typeorm migration:run -d ./apps/api/src/ormconfig.ts",
     "db:generate": "yarn typeorm migration:generate -p true -d ./apps/api/src/ormconfig.ts",
     "db:check": "yarn typeorm migration:generate --check true -d ./apps/api/src/ormconfig.ts fake-filename",
-    "db:generate:init": "yarn db:generate -t 1713522193170 ./migrations/init"
+    "db:generate:init": "yarn db:generate -t 1713522193170 ./migrations/init",
+    "db:migrate:prod": "yarn typeorm migration:run -d dist/apps/api/ormconfig.js"
   },
   "dependencies": {
     "@nestjs/bull": "^11.0.4",
