@@ -15,13 +15,18 @@ import { ConfigService } from '@nestjs/config';
     SharedModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        redis: {
-          host: config.get('REDIS_HOST'),
-          port: config.get('REDIS_PORT'),
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.get('REDIS_URL');
+        return {
+          redis: redisUrl
+            ? redisUrl
+            : {
+                host: config.get('REDIS_HOST'),
+                port: config.get('REDIS_PORT'),
+              },
           maxRetriesPerRequest: null,
-        },
-      }),
+        };
+      },
     }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'cdn'),

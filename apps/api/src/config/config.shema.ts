@@ -10,11 +10,15 @@ const PARAMS = {
     .default(EnvironmentEnum.Dev)
     .required(),
   // database
-  POSTGRES_HOST: Joi.string().required(),
-  POSTGRES_PORT: Joi.number().required(),
-  POSTGRES_DB: Joi.string().required(),
-  POSTGRES_USER: Joi.string().required(),
-  POSTGRES_PASSWORD: Joi.string().required(),
+  POSTGRES_HOST: Joi.string().optional(),
+  POSTGRES_PORT: Joi.number().optional(),
+  POSTGRES_DB: Joi.string().optional(),
+  POSTGRES_USER: Joi.string().optional(),
+  POSTGRES_PASSWORD: Joi.string().optional(),
+  DATABASE_URL: Joi.string().optional(),
+  REDIS_URL: Joi.string().optional(),
+  REDIS_HOST: Joi.string().optional(),
+  REDIS_PORT: Joi.number().optional(),
 };
 
 export const configSchema = Joi.object<typeof PARAMS>(PARAMS);

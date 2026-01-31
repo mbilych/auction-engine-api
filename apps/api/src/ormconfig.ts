@@ -9,15 +9,20 @@ const {
   POSTGRES_DB,
   POSTGRES_USER,
   POSTGRES_PASSWORD,
+  DATABASE_URL,
 } = process.env;
 
 export const dataSourceOptions: DataSourceOptions = {
-  port: parseInt(POSTGRES_PORT),
-  host: POSTGRES_HOST,
-  database: POSTGRES_DB,
-  username: POSTGRES_USER,
-  password: POSTGRES_PASSWORD,
   type: 'postgres',
+  ...(DATABASE_URL
+    ? { url: DATABASE_URL }
+    : {
+        port: parseInt(POSTGRES_PORT),
+        host: POSTGRES_HOST,
+        database: POSTGRES_DB,
+        username: POSTGRES_USER,
+        password: POSTGRES_PASSWORD,
+      }),
   name: 'default',
   synchronize: false,
   migrationsRun: false,
