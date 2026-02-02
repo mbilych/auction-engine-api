@@ -65,10 +65,6 @@ export class BidService extends BasicOrmService<Bid> {
             if (existingBid) return existingBid;
           }
 
-          if (isNaN(amount) || !isFinite(amount)) {
-            throw new BadRequestException('Invalid bid amount');
-          }
-
           const minBid = Number(auction.currentPrice) + Number(auction.minStep);
           if (amount < minBid) {
             throw new BadRequestException(
