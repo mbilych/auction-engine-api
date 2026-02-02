@@ -36,6 +36,7 @@
     "db:migrate:prod": "yarn typeorm migration:run -d dist/apps/api/ormconfig.js"
   },
   "dependencies": {
+    "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs/bull": "^11.0.4",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.2",
@@ -46,6 +47,7 @@
     "@nestjs/platform-socket.io": "^10.0.0",
     "@nestjs/schedule": "^4.1.1",
     "@nestjs/serve-static": "^5.0.4",
+    "@nestjs/throttler": "^6.5.0",
     "@nestjs/typeorm": "^10.0.2",
     "@nestjs/websockets": "^10.0.0",
     "bull": "^4.16.5",

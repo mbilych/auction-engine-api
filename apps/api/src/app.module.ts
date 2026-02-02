@@ -9,6 +9,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { BullModule } from '@nestjs/bull';
 import { ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import Redis from 'ioredis';
+
 
 @Module({
   imports: [
@@ -47,6 +51,31 @@ import { ConfigService } from '@nestjs/config';
       synchronize: false,
       migrations: [],
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.get('REDIS_URL');
+        const redisClient = redisUrl
+          ? new Redis(redisUrl)
+          : new Redis({
+              host: config.get('REDIS_HOST'),
+              port: config.get('REDIS_PORT'),
+            });
+
+        return {
+          throttlers: [
+            {
+              name: 'bid',
+              ttl: 300000, // 5 minutes ban duration
+              limit: 15, // 15 bids per TTL window
+            },
+          ],
+          storage: new ThrottlerStorageRedisService(redisClient),
+        };
+      },
+    }),
   ],
+
 })
 export class AppModule {}
