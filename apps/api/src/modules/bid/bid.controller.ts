@@ -1,5 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { BidService } from './bid.service';
 import { CreateBidDto } from './dto/create-bid.dto';
 
@@ -8,6 +8,7 @@ export class BidController {
   constructor(private readonly bidService: BidService) {}
 
   @Post()
+  @UseGuards(ThrottlerGuard)
   @Throttle({
     bid: {
       limit: 15,
