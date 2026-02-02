@@ -15,7 +15,7 @@ export class SchedulerService {
     return this.queue.add('openAuction', {});
   }
 
-  @Cron('*/10 * * * * *') // Every 10 seconds
+  @Cron('*/5 * * * * *') // Every 5 seconds
   async closeAuction() {
     this.logger.log('Adding closeAuction job to queue');
     return this.queue.add('closeAuction', {});
