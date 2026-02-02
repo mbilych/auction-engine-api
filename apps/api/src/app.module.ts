@@ -13,7 +13,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import Redis from 'ioredis';
 
-
 @Module({
   imports: [
     SharedModule,
@@ -76,6 +75,5 @@ import Redis from 'ioredis';
       },
     }),
   ],
-
 })
 export class AppModule {}
